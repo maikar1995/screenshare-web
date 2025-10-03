@@ -17,7 +17,7 @@ This project is a web application that allows users to share their screen using 
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/screenshare-web.git
+   git clone https://github.com/maikar1995/screenshare-web.git
    cd screenshare-web
    ```
 
@@ -43,7 +43,7 @@ To start the development server, run:
 ```bash
 npm run dev
 ```
-Open your browser and navigate to `http://localhost:3000` to view the application.
+Open your browser and navigate to `http://localhost:3001` (or the port shown in terminal) to view the application.
 
 ## Testing
 
