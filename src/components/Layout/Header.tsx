@@ -84,7 +84,7 @@ export const Header: React.FC<HeaderProps> = ({
               className="btn btn-start"
               onClick={onStartCapture}
               title="Iniciar análisis automático"
-              disabled={appState.connectionStatus !== 'connected'}
+              disabled={false}
             >
               ▶️ Iniciar
             </button>

@@ -17,6 +17,9 @@ export const StatusBar: React.FC<StatusBarProps> = ({ appState }) => {
     if (appState.isCapturing) {
       return `⏰ Próxima captura en ${formatInterval(appState.captureInterval)}`;
     }
+    if (appState.connectionStatus === 'disconnected') {
+      return '💤 Listo para iniciar - Haz clic en "Iniciar"';
+    }
     return '⏸️ Análisis pausado';
   };
 

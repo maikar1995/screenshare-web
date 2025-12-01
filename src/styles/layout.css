@@ -145,23 +145,20 @@
   color: white;
 }
 
+/* Prompt row */
+.prompt-row {
+  padding: 0.75rem 1.5rem;
+  background: #161b22;
+  border-bottom: 1px solid #30363d;
+}
+
 /* Main content */
 .main-content {
   flex: 1;
   display: flex;
-  overflow: hidden;
-}
-
-.capture-section {
-  flex: 1;
-  display: flex;
   flex-direction: column;
-}
-
-.chat-section {
-  width: 400px;
-  border-left: 1px solid #30363d;
-  background: #0d1117;
+  overflow: hidden;
+  padding: 0;
 }
 
 /* Capture Area */
@@ -417,16 +414,238 @@
 }
 
 /* Responsive */
-@media (max-width: 1024px) {
-  .main-content {
+/* Prompt section full width */
+.prompt-section-full {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.prompt-title {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #f0f6fc;
+  white-space: nowrap;
+}
+
+.prompt-display-full {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex: 1;
+}
+
+.prompt-text-full {
+  flex: 1;
+  margin: 0;
+  padding: 0.5rem 0.75rem;
+  background: #21262d;
+  border: 1px solid #30363d;
+  border-radius: 0.375rem;
+  font-size: 0.8125rem;
+  color: #8b949e;
+  line-height: 1.3;
+  min-height: 2rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: calc(100vw - 150px);
+}
+
+
+
+.prompt-display-full .btn {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.8125rem;
+  min-width: 2rem;
+  width: 2rem;
+  height: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Modal para editar prompt */
+.prompt-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+}
+
+.prompt-modal {
+  background: #161b22;
+  border: 1px solid #30363d;
+  border-radius: 0.75rem;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+  width: 90%;
+  max-width: 600px;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  animation: modalFadeIn 0.2s ease-out;
+}
+
+.prompt-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.5rem;
+  border-bottom: 1px solid #30363d;
+}
+
+.prompt-modal-header h3 {
+  margin: 0;
+  color: #f0f6fc;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.btn-close {
+  background: none;
+  border: none;
+  color: #8b949e;
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0.25rem;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.375rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.btn-close:hover {
+  background: #21262d;
+  color: #f0f6fc;
+}
+
+.prompt-modal-body {
+  padding: 1.5rem;
+  flex: 1;
+}
+
+.prompt-modal-textarea {
+  width: 100%;
+  padding: 1rem;
+  background: #0d1117;
+  border: 2px solid #30363d;
+  border-radius: 0.5rem;
+  color: #f0f6fc;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  resize: vertical;
+  font-family: inherit;
+  min-height: 120px;
+  transition: border-color 0.2s ease;
+}
+
+.prompt-modal-textarea:focus {
+  outline: none;
+  border-color: #58a6ff;
+  box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.1);
+}
+
+.prompt-modal-textarea::placeholder {
+  color: #6e7681;
+}
+
+.prompt-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  padding: 1.5rem;
+  border-top: 1px solid #30363d;
+  background: #0d1117;
+  border-radius: 0 0 0.75rem 0.75rem;
+}
+
+.prompt-modal-footer .btn {
+  padding: 0.75rem 1.5rem;
+  font-size: 0.875rem;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  min-width: auto;
+  width: auto;
+  height: auto;
+}
+
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Responsive modal */
+@media (max-width: 768px) {
+  .prompt-modal {
+    width: 95%;
+    max-height: 90vh;
+  }
+  
+  .prompt-modal-header,
+  .prompt-modal-body,
+  .prompt-modal-footer {
+    padding: 1rem;
+  }
+  
+  .prompt-modal-header h3 {
+    font-size: 1.125rem;
+  }
+  
+  .prompt-modal-footer {
     flex-direction: column;
   }
   
-  .chat-section {
+  .prompt-modal-footer .btn {
     width: 100%;
-    height: 300px;
-    border-left: none;
-    border-top: 1px solid #30363d;
+  }
+}
+
+@media (max-width: 1024px) {
+  .prompt-row {
+    padding: 0.5rem 1rem;
+  }
+  
+  .prompt-section-full {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+  
+  .prompt-display-full,
+  .prompt-editing-full {
+    width: 100%;
+  }
+  
+  .prompt-text-full {
+    max-width: calc(100vw - 60px);
+    white-space: normal;
+    text-overflow: unset;
+    overflow: visible;
+    min-height: auto;
+  }
+  
+  .prompt-display-full .btn {
+    min-width: 1.5rem;
+    width: 1.5rem;
+    height: 1.5rem;
+    font-size: 0.75rem;
   }
 }
 

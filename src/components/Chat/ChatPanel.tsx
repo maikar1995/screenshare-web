@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from 'react';
+import ReactMarkdown from 'react-markdown';
 import { ChatMessage } from '../../types';
 
 interface ChatPanelProps {
@@ -48,17 +49,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
 
   return (
     <div className="chat-panel">
-      <div className="chat-header">
-        <h3 className="chat-title">🤖 AI Assistant</h3>
-        <div className={`connection-indicator ${connectionStatus}`}>
-          <span className="indicator-dot"></span>
-          <span className="indicator-text">
-            {connectionStatus === 'connected' ? 'Conectado' : 
-             connectionStatus === 'connecting' ? 'Conectando...' :
-             connectionStatus === 'error' ? 'Error' : 'Desconectado'}
-          </span>
-        </div>
-      </div>
+
 
       <div className="chat-messages">
         {messages.length === 0 ? (
@@ -77,7 +68,11 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
                 <span className="message-time">{formatTime(message.timestamp)}</span>
               </div>
               <div className="message-content">
-                {message.content}
+                {message.type === 'assistant' ? (
+                  <ReactMarkdown>{message.content}</ReactMarkdown>
+                ) : (
+                  message.content
+                )}
               </div>
               {message.imageData && (
                 <div className="message-image">
@@ -112,14 +107,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
         <div ref={messagesEndRef} />
       </div>
 
-      <div className="chat-footer">
-        <div className="chat-info">
-          <p>
-            💡 <strong>Tip:</strong> El AI analizará automáticamente tu pantalla 
-            cada 30 segundos y te contará lo que ve.
-          </p>
-        </div>
-      </div>
+
     </div>
   );
 };

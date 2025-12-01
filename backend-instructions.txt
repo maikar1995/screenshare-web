@@ -1,0 +1,154 @@
+# Instrucciones para el desarrollador del backend - ScreenShare AI Assistant
+
+## 1. ESTRUCTURA DEL WEBSOCKET SERVER
+- Puerto: 8000 (desarrollo) o variable de entorno
+- Endpoint: /ws
+- Protocolo: WebSocket con mensajes JSON
+- CORS: Permitir origen del frontend (localhost:3000 en desarrollo)
+
+## 2. GESTIÓN DE CONVERSACIÓN
+# IMPORTANTE: Mantener contexto de conversación por sesión WebSocket
+# No son llamadas independientes - es UNA conversación continua
+conversation_history = []  # Por cada conexión WebSocket
+
+## 3. FORMATO DE MENSAJE RECIBIDO DEL FRONTEND
+{
+  "type": "screenshot",
+  "data": {
+    "image": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD...",
+    "prompt": "Analiza las capturas de pantalla que recibas y describe detalladamente lo que ves. Presta especial atención a texto, interfaces de usuario, código, y cualquier elemento relevante en la pantalla.",
+    "timestamp": 1701433200000
+  }
+}
+
+## 4. FORMATO DE RESPUESTA AL FRONTEND
+{
+  "type": "chat_response",
+  "id": "msg_1701433205000",
+  "data": {
+    "content": "Veo una pantalla con un editor de código VS Code abierto. Hay varios archivos TypeScript visibles..."
+  },
+  "timestamp": 1701433205000
+}
+
+## 5. FORMATO DE ERROR AL FRONTEND
+{
+  "type": "error",
+  "data": {
+    "message": "Error específico para el usuario"
+  }
+}
+
+## 6. OPTIMIZACIÓN DE IMÁGENES
+- Las imágenes vienen optimizadas (máx 1920x1080, calidad 0.8)
+- Considerar redimensionar más si el LLM tiene límites de tamaño
+- Comprimir si es necesario antes de enviar al LLM
+
+## 7. RATE LIMITING Y PERFORMANCE
+- Debounce: Si llegan múltiples imágenes muy rápido, procesar solo la última
+- Queue: Para múltiples usuarios, usar cola de procesamiento
+- Timeout: Timeout en llamadas al LLM (30s máximo)
+
+## 8. VARIABLES DE ENTORNO NECESARIAS
+OPENAI_API_KEY=tu_api_key
+WEBSOCKET_PORT=8000
+FRONTEND_URL=http://localhost:3000
+MAX_IMAGE_SIZE=2097152
+CONVERSATION_TIMEOUT=3600
+
+## 9. LOGGING IMPORTANTE
+logger.info(f"Screenshot received: {len(base64_image)} chars")
+logger.info(f"LLM response: {len(response)} chars")
+logger.error(f"LLM API error: {error}")
+
+## 10. PROMPT DEL SISTEMA BASE
+SYSTEM_PROMPT = """Eres un asistente AI especializado en analizar capturas de pantalla. 
+Analiza cada imagen que recibas y describe lo que ves de forma clara y detallada. 
+Presta especial atención a texto, interfaces, código, errores, y elementos importantes."""
+
+## 11. CÓDIGO PYTHON DE EJEMPLO
+import asyncio
+import websockets
+import json
+import base64
+from PIL import Image
+from io import BytesIO
+import time
+
+async def handle_message(websocket, path):
+    conversation_history = []
+    
+    async for message in websocket:
+        try:
+            data = json.loads(message)
+            
+            if data["type"] == "screenshot":
+                # Extraer la imagen
+                image_data = data["data"]["image"]
+                prompt = data["data"]["prompt"]
+                
+                # Remover el prefijo "data:image/jpeg;base64,"
+                base64_image = image_data.split(",")[1]
+                
+                # Decodificar la imagen
+                image_bytes = base64.b64decode(base64_image)
+                image = Image.open(BytesIO(image_bytes))
+                
+                # Añadir a historial de conversación
+                conversation_history.append({
+                    "role": "user",
+                    "content": f"[IMAGEN] {prompt}"
+                })
+                
+                # Llamar al LLM (ejemplo con OpenAI)
+                response = await call_llm(base64_image, prompt, conversation_history)
+                
+                # Añadir respuesta al historial
+                conversation_history.append({
+                    "role": "assistant",
+                    "content": response
+                })
+                
+                # Enviar respuesta
+                await websocket.send(json.dumps({
+                    "type": "chat_response",
+                    "id": f"msg_{int(time.time() * 1000)}",
+                    "data": {"content": response},
+                    "timestamp": int(time.time() * 1000)
+                }))
+                
+            elif data["type"] == "prompt_update":
+                # Actualizar prompt del sistema
+                new_prompt = data["data"]["prompt"]
+                # Actualizar configuración del LLM
+                
+        except Exception as e:
+            await websocket.send(json.dumps({
+                "type": "error",
+                "data": {"message": f"Error: {str(e)}"}
+            }))
+
+# Iniciar servidor WebSocket
+start_server = websockets.serve(handle_message, "localhost", 8000)
+asyncio.get_event_loop().run_until_complete(start_server)
+
+## 12. TESTING DEL WEBSOCKET
+# Herramienta: wscat
+npm install -g wscat
+wscat -c ws://localhost:8000/ws
+
+# Mensaje de prueba:
+{"type":"screenshot","data":{"image":"data:image/jpeg;base64,test","prompt":"Prueba","timestamp":1701433200000}}
+
+## 13. DEPLOYMENT (AZURE)
+- Azure Container Instances o Azure Web Apps
+- Variables de entorno configuradas en Azure
+- HTTPS/WSS en producción
+- Health check endpoint: /health recomendado
+
+## 14. CONFIGURACIÓN FRONTEND PARA CONECTAR
+# En websocketService.ts cambiar:
+private isMockMode = false;  // Cambiar a false
+# Y usar:
+wsService.connect('ws://localhost:8000/ws')  // Desarrollo
+wsService.connect('wss://tu-backend.azurecontainer.io/ws')  // Producción

@@ -10,7 +10,7 @@ export class WebSocketService {
   private maxReconnectAttempts = 5;
   private reconnectDelay = 2000;
   private url = '';
-  private isMockMode = true; // Para desarrollo inicial
+  private isMockMode = false; // Cambiado a backend real
 
   async connect(url: string): Promise<void> {
     this.url = url;
