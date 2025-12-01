@@ -59,7 +59,7 @@ export const Header: React.FC<HeaderProps> = ({
     <header className="app-header">
       <div className="header-left">
         <h1 className="app-title">
-          📺 ScreenShare AI Assistant
+          🤖 AI Screen
         </h1>
         <div className="connection-status">
           <span className="status-icon">{getConnectionStatusIcon()}</span>
