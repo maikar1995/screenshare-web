@@ -105,6 +105,23 @@ export class WebSocketService {
     }
   }
 
+  sendVoiceCommand(audioBase64: string, imageBase64?: string): void {
+    if (this.ws?.readyState === WebSocket.OPEN) {
+      const message: WebSocketMessage = {
+        type: 'voice_command',
+        audio_base64: audioBase64,
+        audio_mime: 'audio/webm',
+        image_base64: imageBase64 || '', // Optional image
+        image_mime: 'image/png',
+        client_timestamp: new Date().toISOString()
+      };
+      console.log('📤 Sending voice command via WebSocket');
+      this.ws.send(JSON.stringify(message));
+    } else {
+      console.warn('WebSocket not connected, cannot send voice command');
+    }
+  }
+
   // Mock implementation para simular respuesta del LLM
   private sendScreenshotMock(imageData: string, prompt?: string): void {
     console.log('📸 Mock: Screenshot captured and sent');
