@@ -13,25 +13,12 @@ export class WebSocketService {
   private isMockMode = false; // Cambiado a backend real
 
   async connect(url?: string): Promise<void> {
-    // Use environment variable if no URL provided
-    const envUrl = (import.meta as any).env?.VITE_WS_URL;
-    this.url = url || envUrl || 'ws://localhost:8000/ws?token=DEV_SHARED_SECRET';
-    console.log('🔗 Connecting to WebSocket:', this.url);
-    console.log('📊 Environment details:', {
-      providedUrl: url,
-      envUrl,
-      finalUrl: this.url,
-      mode: (import.meta as any).env?.MODE,
-      dev: (import.meta as any).env?.DEV,
-      prod: (import.meta as any).env?.PROD
-    });
+    // Use the exact environment variable without concatenations
+    this.url = url || (import.meta as any).env?.VITE_WS_URL || 'ws://localhost:8000/ws?token=DEV_SHARED_SECRET';
     
-    // Enable mock mode if no valid WebSocket URL is available
-    if (!this.url || this.url.includes('<') || this.url.includes('your-')) {
-      console.log('🔧 No valid WebSocket URL found, enabling mock mode');
-      this.isMockMode = true;
-      return this.connectMock();
-    }
+    // Log para verificar la URL exacta que se está usando
+    console.log("Connecting to WS:", (import.meta as any).env?.VITE_WS_URL);
+
     
     if (this.isMockMode) {
       return this.connectMock();
@@ -40,6 +27,7 @@ export class WebSocketService {
     return new Promise((resolve, reject) => {
       try {
         this.onStatusCallback?.('connecting');
+        
         this.ws = new WebSocket(this.url);
         
         this.ws.onopen = () => {
@@ -51,9 +39,7 @@ export class WebSocketService {
 
         this.ws.onmessage = (event) => {
           try {
-            console.log('📨 Raw WebSocket message received:', event.data);
             const data = JSON.parse(event.data);
-            console.log('📨 Parsed WebSocket message:', data);
             this.handleMessage(data);
           } catch (error) {
             console.error('Error parsing WebSocket message:', error);
@@ -71,7 +57,7 @@ export class WebSocketService {
 
         this.ws.onerror = (error) => {
           console.error('WebSocket error:', error);
-          this.onErrorCallback?.('Connection error');
+          this.onStatusCallback?.('error');
           reject(error);
         };
         
@@ -83,7 +69,6 @@ export class WebSocketService {
 
   // Mock implementation para desarrollo
   private async connectMock(): Promise<void> {
-    console.log('🔧 Using mock WebSocket service');
     this.onStatusCallback?.('connecting');
     
     // Simular conexión

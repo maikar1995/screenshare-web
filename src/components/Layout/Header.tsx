@@ -24,7 +24,6 @@ export const Header: React.FC<HeaderProps> = ({
   onTestConnection = () => {},
   onTestVoiceCommand = () => {}
 }) => {
-  
   const getVoiceStatusText = (voiceState: VoiceState, recordingDuration: number): string => {
     switch (voiceState) {
       case 'idle':
@@ -106,6 +105,7 @@ export const Header: React.FC<HeaderProps> = ({
             <span className="voice-status-text">
               {voiceControl.isEnabled ? getVoiceStatusText(voiceControl.voiceState, voiceControl.recordingDuration) : 'Iniciar'}
             </span>
+            <span style={{ fontSize: '10px', display: 'block' }}>DEBUG</span>
           </button>
           
           {/* Development testing buttons */}

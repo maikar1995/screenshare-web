@@ -17,10 +17,6 @@ const DEFAULT_CAPTURE_SETTINGS: CaptureSettings = {
 };
 
 export const AppLayout: React.FC = () => {
-  console.log('AppLayout render');
-  console.log('WS URL:', import.meta.env.VITE_WS_URL);
-  console.log('Environment mode:', import.meta.env.MODE);
-  
   const [appState, setAppState] = useState<AppState>({
     isCapturing: false,
     isAnalyzing: false,
@@ -40,29 +36,23 @@ export const AppLayout: React.FC = () => {
 
   // Set up WebSocket service for voice control - run once on mount
   useEffect(() => {
-    console.log('🔧 Setting up WebSocket service for voice control');
     voiceControl.setWebSocketService(wsService);
-    console.log('✅ Voice control configured with WebSocket service');
-  }, []);  // Empty dependency array to run only once
+  }, []);
 
   const handleVoiceToggle = useCallback(async () => {
     const willEnable = !voiceControl.isEnabled;
-    console.log('🎤 Toggle voice control:', willEnable);
     
     if (willEnable) {
       // Connecting WebSocket and enabling voice control
       if (!isConnected) {
-        console.log('🔗 Auto-connecting WebSocket for voice control...');
         setAppState(prev => ({ ...prev, connectionStatus: 'connecting' }));
         
         try {
           await wsService.connect(); // Uses VITE_WS_URL from env
           setIsConnected(true);
           setAppState(prev => ({ ...prev, connectionStatus: 'connected' }));
-          console.log('✅ WebSocket connected for voice control');
           
         } catch (error) {
-          console.error('Failed to connect WebSocket:', error);
           const errorMessage: ChatMessage = {
             id: Date.now().toString(),
             type: 'error',
@@ -74,14 +64,11 @@ export const AppLayout: React.FC = () => {
             chatMessages: [...prev.chatMessages, errorMessage],
             connectionStatus: 'error'
           }));
-          return; // Don't enable voice control if connection failed
+          return;
         }
       }
       
-      // Ensure WebSocket service is set before enabling
       voiceControl.setWebSocketService(wsService);
-      
-      // Enable voice control
       voiceControl.updateSettings({ enabled: true });
       
       // Add activation message

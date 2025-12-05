@@ -12,7 +12,6 @@ const DEFAULT_VOICE_SETTINGS: VoiceSettings = {
 };
 
 export function useVoiceControl() {
-  console.log('🎤 useVoiceControl hook initializing');
   const [voiceState, setVoiceState] = useState<VoiceState>('idle');
   const [settings, setSettings] = useState<VoiceSettings>(DEFAULT_VOICE_SETTINGS);
   const [error, setError] = useState<string | null>(null);
@@ -129,7 +128,13 @@ export function useVoiceControl() {
   }, []);
 
   const updateSettings = useCallback((newSettings: Partial<VoiceSettings>) => {
-    setSettings(prev => ({ ...prev, ...newSettings }));
+    console.log('🔧 Updating voice settings:', newSettings);
+    console.log('📊 Previous settings:', settings);
+    setSettings(prev => {
+      const updated = { ...prev, ...newSettings };
+      console.log('✅ New settings:', updated);
+      return updated;
+    });
     
     if (serviceRef.current) {
       serviceRef.current.updateSettings({ ...settings, ...newSettings });
@@ -138,9 +143,9 @@ export function useVoiceControl() {
 
   // Set up WebSocket service reference
   const setWebSocketService = useCallback((wsService: WebSocketService) => {
-    console.log('🔧 Setting WebSocket service in voice control hook');
+    console.log('🔧 [HOOK] Setting WebSocket service in voice control hook');
     wsServiceRef.current = wsService;
-    console.log('✅ WebSocket service set, connected:', wsService.isConnected());
+    console.log('✅ [HOOK] WebSocket service set, connected:', wsService.isConnected());
   }, []);
 
   // Auto start/stop when enabled changes
