@@ -113,11 +113,12 @@ export class WebSocketService {
         type: 'voice_command',
         audio_base64: audioBase64,
         audio_mime: 'audio/webm',
-        image_base64: imageBase64 || '', // Optional image
-        image_mime: 'image/png',
+        image_base64: imageBase64 || '',
+        image_mime: 'image/jpeg',
         client_timestamp: new Date().toISOString()
       };
-      console.log('📤 Sending voice command via WebSocket');
+      console.log('📤 Sending voice command with image via WebSocket');
+      console.log(`📊 Audio: ${audioBase64.length} chars, Image: ${(imageBase64 || '').length} chars`);
       this.ws.send(JSON.stringify(message));
     } else {
       console.warn('WebSocket not connected, cannot send voice command');

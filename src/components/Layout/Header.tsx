@@ -3,16 +3,12 @@ import { AppState } from '../../types';
 
 interface HeaderProps {
   appState: AppState;
-  onStartCapture: () => void;
-  onStopCapture: () => void;
   onPromptUpdate: (prompt: string) => void;
   onClearChat: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
   appState,
-  onStartCapture,
-  onStopCapture,
   onPromptUpdate,
   onClearChat
 }) => {
@@ -71,25 +67,6 @@ export const Header: React.FC<HeaderProps> = ({
 
       <div className="header-right">
         <div className="control-buttons">
-          {appState.isCapturing ? (
-            <button 
-              className="btn btn-stop"
-              onClick={onStopCapture}
-              title="Pausar análisis automático"
-            >
-              ⏸️ Pausar
-            </button>
-          ) : (
-            <button 
-              className="btn btn-start"
-              onClick={onStartCapture}
-              title="Iniciar análisis automático"
-              disabled={false}
-            >
-              ▶️ Iniciar
-            </button>
-          )}
-          
           <button 
             className="btn btn-clear"
             onClick={onClearChat}

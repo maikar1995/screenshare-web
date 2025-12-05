@@ -87,12 +87,9 @@ export const AppLayout: React.FC = () => {
     });
   }, [voiceControl, isConnected, wsService, setAppState]);
 
-  // Voice commands will handle their own screen captures when needed
-  // No automatic screen capture callbacks needed
-
-  // Auto capture disabled - only voice commands will trigger captures
-  // const { stopCapture } = useAutoCapture();
-
+  // All capture functionality is now handled by voice control system
+  // which requests both audio and screen permissions upfront
+  
   // Configurar WebSocket callbacks
   useEffect(() => {
     wsService.onMessage((message: ChatMessage) => {
@@ -135,77 +132,7 @@ export const AppLayout: React.FC = () => {
     };
   }, [wsService]);
 
-  // Handlers para los controles
-  const handleStartCapture = useCallback(async () => {
-    console.log('🚀 Starting voice command session');
-    
-    if (!isConnected) {
-      // Conectar al WebSocket para comandos de voz
-      setAppState(prev => ({ ...prev, connectionStatus: 'connecting' }));
-      
-      try {
-        await wsService.connect('ws://localhost:8000/ws');
-        setIsConnected(true);
-      } catch (error) {
-        console.error('Failed to connect to WebSocket:', error);
-        const errorMessage: ChatMessage = {
-          id: Date.now().toString(),
-          type: 'error',
-          content: '❌ No se pudo conectar al servidor. Asegúrate de que el backend esté funcionando.',
-          timestamp: new Date()
-        };
-        setAppState(prev => ({
-          ...prev,
-          chatMessages: [...prev.chatMessages, errorMessage],
-          connectionStatus: 'error'
-        }));
-        return;
-      }
-    }
-    
-    setAppState(prev => ({ ...prev, isCapturing: true }));
-    
-    // Agregar mensaje de inicio
-    const startMessage: ChatMessage = {
-      id: Date.now().toString(),
-      type: 'system',
-      content: '🎤 Sistema de comandos de voz activado. Conectado al servidor.',
-      timestamp: new Date()
-    };
-    
-    setAppState(prev => ({
-      ...prev,
-      chatMessages: [...prev.chatMessages, startMessage]
-    }));
-  }, [isConnected, wsService]);
-
-  const handleStopCapture = useCallback(() => {
-    console.log('⏹️ Stopping voice command session');
-    
-    // Desconectar WebSocket al parar
-    wsService.disconnect();
-    setIsConnected(false);
-    
-    setAppState(prev => ({ 
-      ...prev, 
-      isCapturing: false, 
-      isAnalyzing: false,
-      connectionStatus: 'disconnected'
-    }));
-    
-    // Agregar mensaje de parada
-    const stopMessage: ChatMessage = {
-      id: Date.now().toString(),
-      type: 'system',
-      content: '⏸️ Sistema de comandos de voz desactivado. Conexión cerrada.',
-      timestamp: new Date()
-    };
-    
-    setAppState(prev => ({
-      ...prev,
-      chatMessages: [...prev.chatMessages, stopMessage]
-    }));
-  }, [wsService]);
+  // Voice control will handle all capture functionality now
 
   const handlePromptUpdate = useCallback((newPrompt: string) => {
     console.log('📝 Updating system prompt');
@@ -222,8 +149,6 @@ export const AppLayout: React.FC = () => {
     <div className="app-layout">
       <Header 
         appState={appState}
-        onStartCapture={handleStartCapture}
-        onStopCapture={handleStopCapture}
         onPromptUpdate={handlePromptUpdate}
         onClearChat={handleClearChat}
       />

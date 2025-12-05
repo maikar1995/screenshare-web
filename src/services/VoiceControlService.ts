@@ -3,6 +3,7 @@ import { VoiceState, VoiceSettings, VoiceControlCallbacks } from '../types';
 export class VoiceControlService {
   private audioContext?: AudioContext;
   private mediaStream?: MediaStream;
+  private screenStream?: MediaStream;
   private mediaRecorder?: MediaRecorder;
   private analyser?: AnalyserNode;
   private sourceNode?: MediaStreamAudioSourceNode;
@@ -25,14 +26,36 @@ export class VoiceControlService {
 
   async initialize(): Promise<void> {
     try {
-      // Get microphone access
-      this.mediaStream = await navigator.mediaDevices.getUserMedia({ 
-        audio: {
-          echoCancellation: true,
-          noiseSuppression: true,
-          sampleRate: 16000
-        } 
-      });
+      console.log('🎤 Requesting audio and screen permissions...');
+      
+      // Get both microphone and screen access
+      const [audioStream, screenStream] = await Promise.all([
+        navigator.mediaDevices.getUserMedia({ 
+          audio: {
+            echoCancellation: true,
+            noiseSuppression: true,
+            sampleRate: 16000
+          } 
+        }),
+        navigator.mediaDevices.getDisplayMedia({
+          video: {
+            width: { ideal: 1920 },
+            height: { ideal: 1080 }
+          }
+        })
+      ]);
+      
+      this.mediaStream = audioStream;
+      this.screenStream = screenStream;
+      
+      // Handle screen sharing ending
+      const videoTrack = screenStream.getVideoTracks()[0];
+      if (videoTrack) {
+        videoTrack.addEventListener('ended', () => {
+          console.log('⚠️ Screen sharing ended by user');
+          this.handleError('Screen sharing was stopped. Please restart to continue.');
+        });
+      }
 
       // Setup audio context and analysis
       this.audioContext = new AudioContext();
@@ -44,11 +67,12 @@ export class VoiceControlService {
       
       this.sourceNode.connect(this.analyser);
       
+      console.log('✅ Audio and screen permissions granted');
       this.setState('listening');
       this.startVADLoop();
       
     } catch (error) {
-      this.handleError(`Error accessing microphone: ${error}`);
+      this.handleError(`Error accessing microphone or screen: ${error}`);
     }
   }
 
@@ -231,20 +255,30 @@ export class VoiceControlService {
   }
 
   private async getCurrentImageBlob(): Promise<Blob> {
-    // Create a simple 1x1 transparent PNG as placeholder
-    // The real screen capture should be handled by the existing system
-    const canvas = document.createElement('canvas');
-    canvas.width = 1;
-    canvas.height = 1;
-    const ctx = canvas.getContext('2d');
+    if (!this.screenStream) {
+      throw new Error('No screen stream available');
+    }
     
+    const video = document.createElement('video');
+    video.srcObject = this.screenStream;
+    video.muted = true;
+    
+    await new Promise((resolve, reject) => {
+      video.onloadedmetadata = resolve;
+      video.onerror = reject;
+      video.play().catch(reject);
+    });
+    
+    const canvas = document.createElement('canvas');
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    
+    const ctx = canvas.getContext('2d');
     if (!ctx) {
       throw new Error('Could not get canvas context');
     }
     
-    // Create transparent pixel
-    ctx.fillStyle = 'rgba(0,0,0,0)';
-    ctx.fillRect(0, 0, 1, 1);
+    ctx.drawImage(video, 0, 0);
     
     return new Promise((resolve, reject) => {
       canvas.toBlob((blob) => {
@@ -253,7 +287,7 @@ export class VoiceControlService {
         } else {
           reject(new Error('Could not create image blob'));
         }
-      }, 'image/png', 1.0);
+      }, 'image/jpeg', 0.8);
     });
   }
 
@@ -274,6 +308,10 @@ export class VoiceControlService {
     
     if (this.mediaStream) {
       this.mediaStream.getTracks().forEach(track => track.stop());
+    }
+    
+    if (this.screenStream) {
+      this.screenStream.getTracks().forEach(track => track.stop());
     }
     
     if (this.audioContext && this.audioContext.state !== 'closed') {

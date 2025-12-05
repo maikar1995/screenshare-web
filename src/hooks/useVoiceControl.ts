@@ -53,14 +53,19 @@ export function useVoiceControl() {
 
   const handleVoiceCommand = useCallback(async (audioBlob: Blob, imageBlob: Blob) => {
     try {
-      // Convert audio to base64
-      const audioBase64 = await blobToBase64(audioBlob);
-      console.log('🎵 Audio converted to base64:', audioBase64.length, 'characters');
+      // Convert audio and image to base64
+      const [audioBase64, imageBase64] = await Promise.all([
+        blobToBase64(audioBlob),
+        blobToBase64(imageBlob)
+      ]);
       
-      // Send via WebSocket if available (skip image for now to avoid screen sharing issues)
+      console.log('🎵 Audio converted to base64:', audioBase64.length, 'characters');
+      console.log('🖼️ Image converted to base64:', imageBase64.length, 'characters');
+      
+      // Send both audio and image via WebSocket
       if (wsServiceRef.current && wsServiceRef.current.isConnected()) {
-        wsServiceRef.current.sendVoiceCommand(audioBase64); // No image for now
-        console.log('✅ Voice command sent successfully');
+        wsServiceRef.current.sendVoiceCommand(audioBase64, imageBase64);
+        console.log('✅ Voice command with image sent successfully');
         
         // Show confirmation popup
         setShowSentConfirmation(true);

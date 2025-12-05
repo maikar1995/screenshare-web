@@ -23,22 +23,22 @@ export function VoiceOverlay({
 }: VoiceOverlayProps) {
   const getStateText = (): string => {
     if (!isEnabled) {
-      return 'Control de voz desactivado';
+      return 'Haz clic para activar audio + pantalla';
     }
     
     switch (voiceState) {
       case 'idle':
-        return 'Listo para activar';
+        return 'Activando permisos...';
       case 'listening':
-        return 'Escuchando...';
+        return 'Escuchando... 🎤📺';
       case 'recording':
-        return `Grabando... (${Math.floor(recordingDuration / 1000)}s)`;
+        return `Grabando... (${Math.floor(recordingDuration / 1000)}s) 🎙️📸`;
       case 'sending':
-        return 'Procesando...';
+        return 'Enviando audio + imagen...';
       case 'error':
         return error || 'Error en control de voz';
       default:
-        return 'Control de voz';
+        return 'Control unificado';
     }
   };
 
