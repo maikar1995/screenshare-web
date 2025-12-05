@@ -17,6 +17,14 @@ export class WebSocketService {
     const envUrl = (import.meta as any).env?.VITE_WS_URL;
     this.url = url || envUrl || 'ws://localhost:8000/ws?token=DEV_SHARED_SECRET';
     console.log('🔗 Connecting to WebSocket:', this.url);
+    console.log('📊 Environment details:', {
+      providedUrl: url,
+      envUrl,
+      finalUrl: this.url,
+      mode: (import.meta as any).env?.MODE,
+      dev: (import.meta as any).env?.DEV,
+      prod: (import.meta as any).env?.PROD
+    });
     
     // Enable mock mode if no valid WebSocket URL is available
     if (!this.url || this.url.includes('<') || this.url.includes('your-')) {

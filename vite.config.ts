@@ -12,15 +12,6 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     sourcemap: true,
-    rollupOptions: {
-      external: (id: string) => {
-        // Exclude problematic vfile imports
-        if (id.startsWith('#')) {
-          return true;
-        }
-        return false;
-      }
-    }
   },
   resolve: {
     alias: {

@@ -12,6 +12,7 @@ const DEFAULT_VOICE_SETTINGS: VoiceSettings = {
 };
 
 export function useVoiceControl() {
+  console.log('🎤 useVoiceControl hook initializing');
   const [voiceState, setVoiceState] = useState<VoiceState>('idle');
   const [settings, setSettings] = useState<VoiceSettings>(DEFAULT_VOICE_SETTINGS);
   const [error, setError] = useState<string | null>(null);

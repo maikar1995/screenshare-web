@@ -1,5 +1,4 @@
 import React, { useEffect, useRef } from 'react';
-import ReactMarkdown from 'react-markdown';
 import { ChatMessage } from '../../types';
 
 interface ChatPanelProps {
@@ -68,11 +67,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
                 <span className="message-time">{formatTime(message.timestamp)}</span>
               </div>
               <div className="message-content">
-                {message.type === 'assistant' ? (
-                  <ReactMarkdown>{message.content}</ReactMarkdown>
-                ) : (
-                  message.content
-                )}
+                {message.content}
               </div>
               {message.imageData && (
                 <div className="message-image">

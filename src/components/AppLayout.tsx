@@ -17,6 +17,10 @@ const DEFAULT_CAPTURE_SETTINGS: CaptureSettings = {
 };
 
 export const AppLayout: React.FC = () => {
+  console.log('AppLayout render');
+  console.log('WS URL:', import.meta.env.VITE_WS_URL);
+  console.log('Environment mode:', import.meta.env.MODE);
+  
   const [appState, setAppState] = useState<AppState>({
     isCapturing: false,
     isAnalyzing: false,
