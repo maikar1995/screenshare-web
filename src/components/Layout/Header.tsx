@@ -1,17 +1,42 @@
 import React, { useState } from 'react';
-import { AppState } from '../../types';
+import { AppState, VoiceState } from '../../types';
 
 interface HeaderProps {
   appState: AppState;
   onPromptUpdate: (prompt: string) => void;
   onClearChat: () => void;
+  voiceControl: {
+    isEnabled: boolean;
+    voiceState: VoiceState;
+    recordingDuration: number;
+  };
+  onVoiceToggle: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
   appState,
   onPromptUpdate,
-  onClearChat
+  onClearChat,
+  voiceControl,
+  onVoiceToggle
 }) => {
+  
+  const getVoiceStatusText = (voiceState: VoiceState, recordingDuration: number): string => {
+    switch (voiceState) {
+      case 'idle':
+        return 'Activando...';
+      case 'listening':
+        return 'Escuchando';
+      case 'recording':
+        return `Grabando (${Math.floor(recordingDuration / 1000)}s)`;
+      case 'sending':
+        return 'Enviando...';
+      case 'error':
+        return 'Error';
+      default:
+        return 'Listo';
+    }
+  };
   const [isPromptEditing, setIsPromptEditing] = useState(false);
   const [tempPrompt, setTempPrompt] = useState(appState.systemPrompt);
 
@@ -67,6 +92,18 @@ export const Header: React.FC<HeaderProps> = ({
 
       <div className="header-right">
         <div className="control-buttons">
+          {/* Integrated voice control */}
+          <button 
+            className={`btn voice-control-btn ${voiceControl.isEnabled ? 'voice-active' : 'voice-inactive'}`}
+            onClick={onVoiceToggle}
+            title={voiceControl.isEnabled ? 'Desactivar audio + pantalla' : 'Activar audio + pantalla'}
+          >
+            {voiceControl.isEnabled ? '🛑' : '▶️'}
+            <span className="voice-status-text">
+              {voiceControl.isEnabled ? getVoiceStatusText(voiceControl.voiceState, voiceControl.recordingDuration) : 'Iniciar'}
+            </span>
+          </button>
+          
           <button 
             className="btn btn-clear"
             onClick={onClearChat}

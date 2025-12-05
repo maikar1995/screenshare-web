@@ -52,6 +52,10 @@ export function useVoiceControl() {
   }, []);
 
   const handleVoiceCommand = useCallback(async (audioBlob: Blob, imageBlob: Blob) => {
+    console.log('📤 handleVoiceCommand called');
+    console.log('🔧 wsServiceRef.current exists:', !!wsServiceRef.current);
+    console.log('🔗 WebSocket connected:', wsServiceRef.current?.isConnected());
+    
     try {
       // Convert audio and image to base64
       const [audioBase64, imageBase64] = await Promise.all([
@@ -64,6 +68,7 @@ export function useVoiceControl() {
       
       // Send both audio and image via WebSocket
       if (wsServiceRef.current && wsServiceRef.current.isConnected()) {
+        console.log('🚀 Sending voice command...');
         wsServiceRef.current.sendVoiceCommand(audioBase64, imageBase64);
         console.log('✅ Voice command with image sent successfully');
         
@@ -74,7 +79,9 @@ export function useVoiceControl() {
         }, 2000); // Hide after 2 seconds
         
       } else {
-        handleError('WebSocket no está conectado');
+        const errorMsg = wsServiceRef.current ? 'WebSocket no está conectado' : 'WebSocket service no configurado';
+        console.error('❌ WebSocket error:', errorMsg);
+        handleError(errorMsg);
       }
       
     } catch (error) {
@@ -130,7 +137,9 @@ export function useVoiceControl() {
 
   // Set up WebSocket service reference
   const setWebSocketService = useCallback((wsService: WebSocketService) => {
+    console.log('🔧 Setting WebSocket service in voice control hook');
     wsServiceRef.current = wsService;
+    console.log('✅ WebSocket service set, connected:', wsService.isConnected());
   }, []);
 
   // Auto start/stop when enabled changes

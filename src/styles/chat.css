@@ -129,8 +129,8 @@
 
 .message-content {
   color: #f0f6fc;
-  line-height: 1.5;
-  font-size: 0.9375rem;
+  line-height: 1.4;
+  font-size: 0.625rem;
   word-wrap: break-word;
 }
 
@@ -294,7 +294,7 @@
 
 @media (max-width: 768px) {
   .message-content {
-    font-size: 0.875rem;
+    font-size: 0.625rem;
   }
   
   .message-user {

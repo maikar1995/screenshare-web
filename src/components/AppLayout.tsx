@@ -34,57 +34,85 @@ export const AppLayout: React.FC = () => {
   // Voice control hook
   const voiceControl = useVoiceControl();
 
-  // Set up WebSocket service for voice control
+  // Set up WebSocket service for voice control - run once on mount
   useEffect(() => {
+    console.log('🔧 Setting up WebSocket service for voice control');
     voiceControl.setWebSocketService(wsService);
-  }, [voiceControl, wsService]);
+    console.log('✅ Voice control configured with WebSocket service');
+  }, []);  // Empty dependency array to run only once
 
   const handleVoiceToggle = useCallback(async () => {
     const willEnable = !voiceControl.isEnabled;
     console.log('🎤 Toggle voice control:', willEnable);
     
-    // If enabling voice control and WebSocket not connected, connect it
-    if (willEnable && !isConnected) {
-      console.log('🔗 Auto-connecting WebSocket for voice control...');
-      setAppState(prev => ({ ...prev, connectionStatus: 'connecting' }));
-      
-      try {
-        await wsService.connect('ws://localhost:8000/ws');
-        setIsConnected(true);
-        console.log('✅ WebSocket connected for voice control');
+    if (willEnable) {
+      // Connecting WebSocket and enabling voice control
+      if (!isConnected) {
+        console.log('🔗 Auto-connecting WebSocket for voice control...');
+        setAppState(prev => ({ ...prev, connectionStatus: 'connecting' }));
         
-        // Add connection message
-        const connectMessage: ChatMessage = {
-          id: Date.now().toString(),
-          type: 'system',
-          content: '🎤 Control de voz activado. WebSocket conectado automáticamente.',
-          timestamp: new Date()
-        };
-        setAppState(prev => ({
-          ...prev,
-          chatMessages: [...prev.chatMessages, connectMessage]
-        }));
-        
-      } catch (error) {
-        console.error('Failed to connect WebSocket:', error);
-        const errorMessage: ChatMessage = {
-          id: Date.now().toString(),
-          type: 'error',
-          content: '❌ No se pudo conectar al servidor para control de voz. Asegúrate de que el backend esté funcionando.',
-          timestamp: new Date()
-        };
-        setAppState(prev => ({
-          ...prev,
-          chatMessages: [...prev.chatMessages, errorMessage],
-          connectionStatus: 'error'
-        }));
-        return; // Don't enable voice control if connection failed
+        try {
+          await wsService.connect('ws://localhost:8000/ws');
+          setIsConnected(true);
+          setAppState(prev => ({ ...prev, connectionStatus: 'connected' }));
+          console.log('✅ WebSocket connected for voice control');
+          
+        } catch (error) {
+          console.error('Failed to connect WebSocket:', error);
+          const errorMessage: ChatMessage = {
+            id: Date.now().toString(),
+            type: 'error',
+            content: '❌ No se pudo conectar al servidor para control de voz. Asegúrate de que el backend esté funcionando.',
+            timestamp: new Date()
+          };
+          setAppState(prev => ({
+            ...prev,
+            chatMessages: [...prev.chatMessages, errorMessage],
+            connectionStatus: 'error'
+          }));
+          return; // Don't enable voice control if connection failed
+        }
       }
+      
+      // Ensure WebSocket service is set before enabling
+      voiceControl.setWebSocketService(wsService);
+      
+      // Enable voice control
+      voiceControl.updateSettings({ enabled: true });
+      
+      // Add activation message
+      const activationMessage: ChatMessage = {
+        id: Date.now().toString(),
+        type: 'system',
+        content: '🎤 Sistema de voz activado. Solicitando permisos...',
+        timestamp: new Date()
+      };
+      setAppState(prev => ({
+        ...prev,
+        chatMessages: [...prev.chatMessages, activationMessage]
+      }));
+      
+    } else {
+      // Disable voice control
+      voiceControl.updateSettings({ enabled: false });
+      
+      // Disconnect WebSocket
+      wsService.disconnect();
+      setIsConnected(false);
+      setAppState(prev => ({ ...prev, connectionStatus: 'disconnected' }));
+      
+      // Add deactivation message
+      const deactivationMessage: ChatMessage = {
+        id: Date.now().toString(),
+        type: 'system',
+        content: '⏸️ Sistema de voz desactivado.',
+        timestamp: new Date()
+      };
+      setAppState(prev => ({
+        ...prev,
+        chatMessages: [...prev.chatMessages, deactivationMessage]
+      }));
     }
-    
-    voiceControl.updateSettings({ 
-      enabled: willEnable 
-    });
   }, [voiceControl, isConnected, wsService, setAppState]);
 
   // All capture functionality is now handled by voice control system
@@ -107,6 +135,9 @@ export const AppLayout: React.FC = () => {
         ...prev,
         connectionStatus: status as AppState['connectionStatus']
       }));
+      
+      // Update isConnected state
+      setIsConnected(status === 'connected');
     });
 
     wsService.onError((error: string) => {
@@ -151,6 +182,12 @@ export const AppLayout: React.FC = () => {
         appState={appState}
         onPromptUpdate={handlePromptUpdate}
         onClearChat={handleClearChat}
+        voiceControl={{
+          isEnabled: voiceControl.isEnabled,
+          voiceState: voiceControl.voiceState,
+          recordingDuration: voiceControl.recordingDuration
+        }}
+        onVoiceToggle={handleVoiceToggle}
       />
       
       <div className="prompt-row">
@@ -170,16 +207,15 @@ export const AppLayout: React.FC = () => {
       
       <StatusBar appState={appState} />
       
-      {/* Voice Control Overlay */}
-      <VoiceOverlay
-        voiceState={voiceControl.voiceState}
-        error={voiceControl.error}
-        recordingDuration={voiceControl.recordingDuration}
-        isEnabled={voiceControl.isEnabled}
-        onToggle={handleVoiceToggle}
-        onTest={voiceControl.testRecording}
-        showSentConfirmation={voiceControl.showSentConfirmation}
-      />
+      {/* Voice confirmation popup - keep only the popup */}
+      {voiceControl.showSentConfirmation && (
+        <div className="voice-confirmation">
+          <div className="voice-confirmation-content">
+            <span className="voice-confirmation-icon">✅</span>
+            <span className="voice-confirmation-text">Comando enviado</span>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
