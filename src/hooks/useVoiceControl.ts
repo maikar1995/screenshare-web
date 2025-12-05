@@ -164,6 +164,19 @@ export function useVoiceControl() {
     }
   }, []);
 
+  // Test WebSocket connection and voice commands
+  const testWebSocketConnection = useCallback(async () => {
+    if (wsServiceRef.current) {
+      await wsServiceRef.current.testConnection('DEV_SHARED_SECRET', 'WRONG_TOKEN');
+    }
+  }, []);
+  
+  const testVoiceCommand = useCallback(async () => {
+    if (wsServiceRef.current) {
+      await wsServiceRef.current.testVoiceCommand();
+    }
+  }, []);
+
   return {
     voiceState,
     settings,
@@ -179,7 +192,9 @@ export function useVoiceControl() {
     stopVoiceControl,
     updateSettings,
     setWebSocketService,
-    testRecording
+    testRecording,
+    testWebSocketConnection,
+    testVoiceCommand
   };
 }
 

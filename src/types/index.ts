@@ -39,6 +39,20 @@ export interface WebSocketMessage {
 
 export type VoiceState = 'idle' | 'listening' | 'recording' | 'sending' | 'error';
 
+// Vite environment variables types
+declare global {
+  interface ImportMeta {
+    env: {
+      VITE_WS_URL?: string;
+      VITE_API_BASE_URL?: string;
+      VITE_WS_API_URL?: string;
+      DEV?: boolean;
+      PROD?: boolean;
+      MODE?: string;
+    };
+  }
+}
+
 export interface VoiceSettings {
   silenceTimeoutMs: number;
   maxRecordingMs: number;

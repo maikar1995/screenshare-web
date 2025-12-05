@@ -11,6 +11,8 @@ interface HeaderProps {
     recordingDuration: number;
   };
   onVoiceToggle: () => void;
+  onTestConnection?: () => void;
+  onTestVoiceCommand?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -18,7 +20,9 @@ export const Header: React.FC<HeaderProps> = ({
   onPromptUpdate,
   onClearChat,
   voiceControl,
-  onVoiceToggle
+  onVoiceToggle,
+  onTestConnection = () => {},
+  onTestVoiceCommand = () => {}
 }) => {
   
   const getVoiceStatusText = (voiceState: VoiceState, recordingDuration: number): string => {
@@ -103,6 +107,28 @@ export const Header: React.FC<HeaderProps> = ({
               {voiceControl.isEnabled ? getVoiceStatusText(voiceControl.voiceState, voiceControl.recordingDuration) : 'Iniciar'}
             </span>
           </button>
+          
+          {/* Development testing buttons */}
+          {import.meta.env.DEV && (
+            <>
+              <button 
+                className="btn btn-test"
+                onClick={onTestConnection}
+                title="Test WebSocket connection with different tokens"
+                style={{fontSize: '0.75rem', padding: '0.25rem 0.5rem'}}
+              >
+                🧪 Test
+              </button>
+              <button 
+                className="btn btn-test"
+                onClick={onTestVoiceCommand}
+                title="Test voice command"
+                style={{fontSize: '0.75rem', padding: '0.25rem 0.5rem'}}
+              >
+                🎤 Test
+              </button>
+            </>
+          )}
           
           <button 
             className="btn btn-clear"
