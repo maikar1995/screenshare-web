@@ -32,7 +32,7 @@ jobs:
       - name: Build
         run: npm run build
         env:
-          VITE_WS_URL: ${{ vars.VITE_WS_URL }}
+          VITE_WS_URL: ${{ secrets.VITE_WS_URL }}
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v4
