@@ -182,6 +182,19 @@
   font-weight: 500;
 }
 
+/* Test buttons for development */
+.btn-test {
+  background: #6f42c1;
+  border-color: #6f42c1;
+  color: white;
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+}
+
+.btn-test:hover {
+  background: #8a63d2;
+}
+
 /* Prompt row */
 .prompt-row {
   padding: 0.75rem 1.5rem;
