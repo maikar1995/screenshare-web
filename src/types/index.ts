@@ -53,6 +53,7 @@ declare global {
   }
 }
 
+
 export interface VoiceSettings {
   silenceTimeoutMs: number;
   maxRecordingMs: number;
