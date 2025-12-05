@@ -114,7 +114,8 @@
 .message-header {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  justify-content: flex-end;
+  margin-bottom: 0.25rem;
 }
 
 .message-icon {
@@ -122,7 +123,7 @@
 }
 
 .message-time {
-  font-size: 0.75rem;
+  font-size: 0.6rem;
   color: #6e7681;
   margin-left: auto;
 }

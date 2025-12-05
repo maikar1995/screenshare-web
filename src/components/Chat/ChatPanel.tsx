@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { ChatMessage } from '../../types';
+import { MarkdownRenderer } from '../MarkdownRenderer';
 
 interface ChatPanelProps {
   messages: ChatMessage[];
@@ -28,18 +29,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
   };
 
   const getMessageIcon = (type: ChatMessage['type']): string => {
-    switch (type) {
-      case 'assistant':
-        return '🤖';
-      case 'user':
-        return '👤';
-      case 'system':
-        return '⚙️';
-      case 'error':
-        return '❌';
-      default:
-        return '💬';
-    }
+    return ''; // Sin emojis
   };
 
   const getMessageClass = (type: ChatMessage['type']): string => {
@@ -63,11 +53,10 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
           messages.map((message) => (
             <div key={message.id} className={getMessageClass(message.type)}>
               <div className="message-header">
-                <span className="message-icon">{getMessageIcon(message.type)}</span>
                 <span className="message-time">{formatTime(message.timestamp)}</span>
               </div>
               <div className="message-content">
-                {message.content}
+                <MarkdownRenderer content={message.content} />
               </div>
               {message.imageData && (
                 <div className="message-image">
@@ -85,7 +74,6 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
         {isAnalyzing && (
           <div className="message message-assistant analyzing">
             <div className="message-header">
-              <span className="message-icon">🤖</span>
               <span className="message-time">{formatTime(new Date())}</span>
             </div>
             <div className="message-content">

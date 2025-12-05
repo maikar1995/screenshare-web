@@ -4,6 +4,7 @@ import { AppLayout } from './components/AppLayout';
 import './styles/main.css';
 import './styles/layout.css';
 import './styles/chat.css';
+import './styles/markdown.css';
 
 console.log('🚀 Main.tsx executing');
 console.log('Environment:', import.meta.env.MODE);
