@@ -52,7 +52,7 @@ export const AppLayout: React.FC = () => {
         setAppState(prev => ({ ...prev, connectionStatus: 'connecting' }));
         
         try {
-          await wsService.connect('ws://localhost:8000/ws');
+          await wsService.connect(); // Uses VITE_WS_URL from env
           setIsConnected(true);
           setAppState(prev => ({ ...prev, connectionStatus: 'connected' }));
           console.log('✅ WebSocket connected for voice control');
@@ -188,6 +188,8 @@ export const AppLayout: React.FC = () => {
           recordingDuration: voiceControl.recordingDuration
         }}
         onVoiceToggle={handleVoiceToggle}
+        onTestConnection={voiceControl.testWebSocketConnection}
+        onTestVoiceCommand={voiceControl.testVoiceCommand}
       />
       
       <div className="prompt-row">

@@ -12,8 +12,18 @@ export class WebSocketService {
   private url = '';
   private isMockMode = false; // Cambiado a backend real
 
-  async connect(url: string): Promise<void> {
-    this.url = url;
+  async connect(url?: string): Promise<void> {
+    // Use environment variable if no URL provided
+    const envUrl = (import.meta as any).env?.VITE_WS_URL;
+    this.url = url || envUrl || 'ws://localhost:8000/ws?token=DEV_SHARED_SECRET';
+    console.log('🔗 Connecting to WebSocket:', this.url);
+    
+    // Enable mock mode if no valid WebSocket URL is available
+    if (!this.url || this.url.includes('<') || this.url.includes('your-')) {
+      console.log('🔧 No valid WebSocket URL found, enabling mock mode');
+      this.isMockMode = true;
+      return this.connectMock();
+    }
     
     if (this.isMockMode) {
       return this.connectMock();
@@ -22,7 +32,7 @@ export class WebSocketService {
     return new Promise((resolve, reject) => {
       try {
         this.onStatusCallback?.('connecting');
-        this.ws = new WebSocket(url);
+        this.ws = new WebSocket(this.url);
         
         this.ws.onopen = () => {
           console.log('WebSocket connected');
@@ -274,5 +284,49 @@ export class WebSocketService {
   setMockMode(enabled: boolean): void {
     this.isMockMode = enabled;
     console.log(`WebSocket service ${enabled ? 'mock' : 'real'} mode enabled`);
+  }
+  
+  // Test connection with different tokens
+  async testConnection(correctToken?: string, wrongToken?: string): Promise<void> {
+    const baseUrl = this.url.split('?')[0]; // Remove existing token
+    
+    if (correctToken) {
+      console.log('🧪 Testing connection with correct token...');
+      try {
+        await this.connect(`${baseUrl}?token=${correctToken}`);
+        console.log('✅ Correct token test: SUCCESS');
+        this.disconnect();
+      } catch (error) {
+        console.error('❌ Correct token test: FAILED', error);
+      }
+    }
+    
+    if (wrongToken) {
+      console.log('🧪 Testing connection with wrong token...');
+      try {
+        await this.connect(`${baseUrl}?token=${wrongToken}`);
+        console.log('⚠️ Wrong token test: Connection established (should fail!)');
+        this.disconnect();
+      } catch (error) {
+        console.log('✅ Wrong token test: Correctly rejected', error);
+      }
+    }
+  }
+  
+  // Test voice command functionality
+  async testVoiceCommand(): Promise<void> {
+    if (!this.isConnected()) {
+      console.error('❌ Cannot test voice command: WebSocket not connected');
+      return;
+    }
+    
+    console.log('🧪 Testing voice command...');
+    
+    // Create fake audio data (base64 encoded silence)
+    const fakeAudioBase64 = 'UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N+QQAoUXrTp66hVFApGn+DyvmAaBS2J1fLMeygENnTD7+GTQQ4VWa/m8KdXFwxOpN3vnF4dCTGJ1/LMeSgGM3TC7+OOPw0VXrPs5KVaFgpLouvws2EaBSuH1fPNeSYEL3nG7+GTQQ4RW7Ds5KZUFQxLn+DyvV8cByqE1fLNeyoFLHfH8N+QQAoUXrTp66hVFApGn+DyvmAaBSuI1vLLdSgGL3LF7eSPOQ8XX7Hq55tUEgtTn93yn2EcBjGJ1vLRfCkFJ3rG8d6QQA0WZ7Xs5KdYFAhNpd/wr2EaBjGN2vLPdSkENnvF8N2OQQ4SZLPt64xSFw1TnNvy2V8aBzmK1fLOfSk='; // 1 second of silence
+    const fakeImageBase64 = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=='; // 1x1 transparent PNG
+    
+    this.sendVoiceCommand(fakeAudioBase64, fakeImageBase64);
+    console.log('✅ Voice command test sent');
   }
 }
