@@ -23,7 +23,7 @@ export interface CaptureSettings {
 }
 
 export interface WebSocketMessage {
-  type: 'screenshot' | 'chat_response' | 'error' | 'status' | 'prompt_update' | 'voice_command';
+  type: 'screenshot' | 'chat_response' | 'error' | 'status' | 'prompt_update' | 'voice_command' | 'voice_command_result' | 'voice_command_response';
   data?: any;
   audio_base64?: string;
   audio_mime?: string;
@@ -32,6 +32,9 @@ export interface WebSocketMessage {
   client_timestamp?: string;
   id?: string;
   timestamp?: number;
+  reply?: string;
+  raw_transcript?: string;
+  success?: boolean;
 }
 
 export type VoiceState = 'idle' | 'listening' | 'recording' | 'sending' | 'error';

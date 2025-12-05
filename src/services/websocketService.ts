@@ -33,7 +33,9 @@ export class WebSocketService {
 
         this.ws.onmessage = (event) => {
           try {
+            console.log('📨 Raw WebSocket message received:', event.data);
             const data = JSON.parse(event.data);
+            console.log('📨 Parsed WebSocket message:', data);
             this.handleMessage(data);
           } catch (error) {
             console.error('Error parsing WebSocket message:', error);
@@ -165,8 +167,11 @@ export class WebSocketService {
   }
 
   private handleMessage(data: WebSocketMessage): void {
+    console.log('🔄 Processing message type:', data.type, data);
+    
     switch (data.type) {
       case 'chat_response':
+        console.log('💬 Processing chat_response');
         const message: ChatMessage = {
           id: data.id || Date.now().toString(),
           type: 'assistant',
@@ -175,17 +180,60 @@ export class WebSocketService {
         };
         this.onMessageCallback?.(message);
         break;
+      
+      case 'voice_command_response':
+        console.log('🎤 Processing voice_command_response');
+        // Handle voice command responses (backend might send this type)
+        const voiceResponse: ChatMessage = {
+          id: data.id || Date.now().toString(),
+          type: 'assistant',
+          content: data.data?.reply || data.data?.content || 'Voice command processed',
+          timestamp: new Date(data.timestamp || Date.now())
+        };
+        this.onMessageCallback?.(voiceResponse);
+        break;
+
+      case 'voice_command_result':
+        console.log('🎤 Processing voice_command_result');
+        // Handle voice command results from backend
+        const voiceResult: ChatMessage = {
+          id: data.id || Date.now().toString(),
+          type: 'assistant',
+          content: data.reply || data.data?.reply || data.data?.content || 'Voice command processed',
+          timestamp: new Date(data.timestamp || Date.now())
+        };
+        
+        // Log the raw transcript if available for debugging
+        if (data.raw_transcript) {
+          console.log('🗣️ Voice transcript:', data.raw_transcript);
+        }
+        
+        this.onMessageCallback?.(voiceResult);
+        break;
         
       case 'error':
+        console.log('❌ Processing error');
         this.onErrorCallback?.(data.data.message);
         break;
         
       case 'status':
+        console.log('📊 Processing status');
         this.onStatusCallback?.(data.data.status);
         break;
         
       default:
-        console.log('Unknown message type:', data.type);
+        console.log('❓ Unknown message type:', data.type, 'Full message:', data);
+        // Try to handle it as a generic response anyway
+        if (data.data && (data.data.reply || data.data.content)) {
+          console.log('🔄 Attempting to handle unknown type as chat response');
+          const genericResponse: ChatMessage = {
+            id: data.id || Date.now().toString(),
+            type: 'assistant',
+            content: data.data.reply || data.data.content,
+            timestamp: new Date(data.timestamp || Date.now())
+          };
+          this.onMessageCallback?.(genericResponse);
+        }
     }
   }
 
