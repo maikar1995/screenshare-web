@@ -23,10 +23,34 @@ export interface CaptureSettings {
 }
 
 export interface WebSocketMessage {
-  type: 'screenshot' | 'chat_response' | 'error' | 'status' | 'prompt_update';
-  data: any;
+  type: 'screenshot' | 'chat_response' | 'error' | 'status' | 'prompt_update' | 'voice_command' | 'voice_command_result' | 'voice_command_response';
+  data?: any;
+  audio_base64?: string;
+  audio_mime?: string;
+  image_base64?: string;
+  image_mime?: string;
+  client_timestamp?: string;
   id?: string;
   timestamp?: number;
+  reply?: string;
+  raw_transcript?: string;
+  success?: boolean;
+}
+
+export type VoiceState = 'idle' | 'listening' | 'recording' | 'sending' | 'error';
+
+export interface VoiceSettings {
+  silenceTimeoutMs: number;
+  maxRecordingMs: number;
+  volumeThreshold: number;
+  minVoiceMs: number;
+  enabled: boolean;
+}
+
+export interface VoiceControlCallbacks {
+  onStateChange: (state: VoiceState) => void;
+  onError: (error: string) => void;
+  onVoiceCommand: (audioBlob: Blob, imageBlob: Blob) => void;
 }
 
 export interface ScreenshotData {

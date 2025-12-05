@@ -145,6 +145,43 @@
   color: white;
 }
 
+/* Voice control button in header */
+.voice-control-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 120px;
+  justify-content: center;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.voice-control-btn.voice-inactive {
+  background: #238636;
+  border-color: #238636;
+  color: white;
+}
+
+.voice-control-btn.voice-inactive:hover:not(:disabled) {
+  background: #2ea043;
+  transform: scale(1.02);
+}
+
+.voice-control-btn.voice-active {
+  background: #da3633;
+  border-color: #da3633;
+  color: white;
+}
+
+.voice-control-btn.voice-active:hover {
+  background: #f85149;
+}
+
+.voice-status-text {
+  font-size: 0.8125rem;
+  font-weight: 500;
+}
+
 /* Prompt row */
 .prompt-row {
   padding: 0.75rem 1.5rem;

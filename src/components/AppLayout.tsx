@@ -2,10 +2,12 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { AppState, ChatMessage, CaptureSettings } from '../types';
 import { WebSocketService } from '../services/websocketService';
 import { useAutoCapture } from '../hooks/useAutoCapture';
+import { useVoiceControl } from '../hooks/useVoiceControl';
 import { Header } from './Layout/Header';
 import { ChatPanel } from './Chat/ChatPanel';
 import { StatusBar } from './Layout/StatusBar';
 import { PromptSection } from './Layout/PromptSection';
+import { VoiceOverlay } from './VoiceControl/VoiceOverlay';
 
 const DEFAULT_CAPTURE_SETTINGS: CaptureSettings = {
   interval: 30000, // 30 segundos
@@ -29,38 +31,93 @@ export const AppLayout: React.FC = () => {
   const [captureSettings] = useState<CaptureSettings>(DEFAULT_CAPTURE_SETTINGS);
   const [wsService] = useState(() => new WebSocketService());
 
-  // Callbacks para manejar capturas de pantalla
-  const handleScreenCapture = useCallback((imageData: string) => {
-    console.log('📸 Screen captured, sending to backend...');
-    setAppState(prev => ({ ...prev, isAnalyzing: true }));
-    wsService.sendScreenshot(imageData, appState.systemPrompt);
-  }, [wsService, appState.systemPrompt]);
+  // Voice control hook
+  const voiceControl = useVoiceControl();
 
-  const handleCaptureError = useCallback((error: string) => {
-    console.error('Capture error:', error);
-    const errorMessage: ChatMessage = {
-      id: Date.now().toString(),
-      type: 'error',
-      content: `Error de captura: ${error}`,
-      timestamp: new Date()
-    };
+  // Set up WebSocket service for voice control - run once on mount
+  useEffect(() => {
+    console.log('🔧 Setting up WebSocket service for voice control');
+    voiceControl.setWebSocketService(wsService);
+    console.log('✅ Voice control configured with WebSocket service');
+  }, []);  // Empty dependency array to run only once
+
+  const handleVoiceToggle = useCallback(async () => {
+    const willEnable = !voiceControl.isEnabled;
+    console.log('🎤 Toggle voice control:', willEnable);
     
-    setAppState(prev => ({
-      ...prev,
-      chatMessages: [...prev.chatMessages, errorMessage],
-      isCapturing: false,
-      isAnalyzing: false
-    }));
-  }, []);
+    if (willEnable) {
+      // Connecting WebSocket and enabling voice control
+      if (!isConnected) {
+        console.log('🔗 Auto-connecting WebSocket for voice control...');
+        setAppState(prev => ({ ...prev, connectionStatus: 'connecting' }));
+        
+        try {
+          await wsService.connect('ws://localhost:8000/ws');
+          setIsConnected(true);
+          setAppState(prev => ({ ...prev, connectionStatus: 'connected' }));
+          console.log('✅ WebSocket connected for voice control');
+          
+        } catch (error) {
+          console.error('Failed to connect WebSocket:', error);
+          const errorMessage: ChatMessage = {
+            id: Date.now().toString(),
+            type: 'error',
+            content: '❌ No se pudo conectar al servidor para control de voz. Asegúrate de que el backend esté funcionando.',
+            timestamp: new Date()
+          };
+          setAppState(prev => ({
+            ...prev,
+            chatMessages: [...prev.chatMessages, errorMessage],
+            connectionStatus: 'error'
+          }));
+          return; // Don't enable voice control if connection failed
+        }
+      }
+      
+      // Ensure WebSocket service is set before enabling
+      voiceControl.setWebSocketService(wsService);
+      
+      // Enable voice control
+      voiceControl.updateSettings({ enabled: true });
+      
+      // Add activation message
+      const activationMessage: ChatMessage = {
+        id: Date.now().toString(),
+        type: 'system',
+        content: '🎤 Sistema de voz activado. Solicitando permisos...',
+        timestamp: new Date()
+      };
+      setAppState(prev => ({
+        ...prev,
+        chatMessages: [...prev.chatMessages, activationMessage]
+      }));
+      
+    } else {
+      // Disable voice control
+      voiceControl.updateSettings({ enabled: false });
+      
+      // Disconnect WebSocket
+      wsService.disconnect();
+      setIsConnected(false);
+      setAppState(prev => ({ ...prev, connectionStatus: 'disconnected' }));
+      
+      // Add deactivation message
+      const deactivationMessage: ChatMessage = {
+        id: Date.now().toString(),
+        type: 'system',
+        content: '⏸️ Sistema de voz desactivado.',
+        timestamp: new Date()
+      };
+      setAppState(prev => ({
+        ...prev,
+        chatMessages: [...prev.chatMessages, deactivationMessage]
+      }));
+    }
+  }, [voiceControl, isConnected, wsService, setAppState]);
 
-  // Hook para captura automática
-  const { stopCapture } = useAutoCapture(
-    appState.isCapturing,
-    captureSettings,
-    handleScreenCapture,
-    handleCaptureError
-  );
-
+  // All capture functionality is now handled by voice control system
+  // which requests both audio and screen permissions upfront
+  
   // Configurar WebSocket callbacks
   useEffect(() => {
     wsService.onMessage((message: ChatMessage) => {
@@ -78,6 +135,9 @@ export const AppLayout: React.FC = () => {
         ...prev,
         connectionStatus: status as AppState['connectionStatus']
       }));
+      
+      // Update isConnected state
+      setIsConnected(status === 'connected');
     });
 
     wsService.onError((error: string) => {
@@ -103,78 +163,7 @@ export const AppLayout: React.FC = () => {
     };
   }, [wsService]);
 
-  // Handlers para los controles
-  const handleStartCapture = useCallback(async () => {
-    console.log('🚀 Starting capture session');
-    
-    if (!isConnected) {
-      // Conectar al WebSocket antes de iniciar captura
-      setAppState(prev => ({ ...prev, connectionStatus: 'connecting' }));
-      
-      try {
-        await wsService.connect('ws://localhost:8000/ws');
-        setIsConnected(true);
-      } catch (error) {
-        console.error('Failed to connect to WebSocket:', error);
-        const errorMessage: ChatMessage = {
-          id: Date.now().toString(),
-          type: 'error',
-          content: '❌ No se pudo conectar al servidor. Asegúrate de que el backend esté funcionando.',
-          timestamp: new Date()
-        };
-        setAppState(prev => ({
-          ...prev,
-          chatMessages: [...prev.chatMessages, errorMessage],
-          connectionStatus: 'error'
-        }));
-        return;
-      }
-    }
-    
-    setAppState(prev => ({ ...prev, isCapturing: true }));
-    
-    // Agregar mensaje de inicio
-    const startMessage: ChatMessage = {
-      id: Date.now().toString(),
-      type: 'system',
-      content: '🎯 Iniciando análisis automático de pantalla cada 30 segundos...',
-      timestamp: new Date()
-    };
-    
-    setAppState(prev => ({
-      ...prev,
-      chatMessages: [...prev.chatMessages, startMessage]
-    }));
-  }, [isConnected, wsService]);
-
-  const handleStopCapture = useCallback(() => {
-    console.log('⏹️ Stopping capture session');
-    stopCapture();
-    
-    // Desconectar WebSocket al parar
-    wsService.disconnect();
-    setIsConnected(false);
-    
-    setAppState(prev => ({ 
-      ...prev, 
-      isCapturing: false, 
-      isAnalyzing: false,
-      connectionStatus: 'disconnected'
-    }));
-    
-    // Agregar mensaje de parada
-    const stopMessage: ChatMessage = {
-      id: Date.now().toString(),
-      type: 'system',
-      content: '⏸️ Análisis automático pausado. Conexión cerrada.',
-      timestamp: new Date()
-    };
-    
-    setAppState(prev => ({
-      ...prev,
-      chatMessages: [...prev.chatMessages, stopMessage]
-    }));
-  }, [stopCapture, wsService]);
+  // Voice control will handle all capture functionality now
 
   const handlePromptUpdate = useCallback((newPrompt: string) => {
     console.log('📝 Updating system prompt');
@@ -191,10 +180,14 @@ export const AppLayout: React.FC = () => {
     <div className="app-layout">
       <Header 
         appState={appState}
-        onStartCapture={handleStartCapture}
-        onStopCapture={handleStopCapture}
         onPromptUpdate={handlePromptUpdate}
         onClearChat={handleClearChat}
+        voiceControl={{
+          isEnabled: voiceControl.isEnabled,
+          voiceState: voiceControl.voiceState,
+          recordingDuration: voiceControl.recordingDuration
+        }}
+        onVoiceToggle={handleVoiceToggle}
       />
       
       <div className="prompt-row">
@@ -213,6 +206,16 @@ export const AppLayout: React.FC = () => {
       </div>
       
       <StatusBar appState={appState} />
+      
+      {/* Voice confirmation popup - keep only the popup */}
+      {voiceControl.showSentConfirmation && (
+        <div className="voice-confirmation">
+          <div className="voice-confirmation-content">
+            <span className="voice-confirmation-icon">✅</span>
+            <span className="voice-confirmation-text">Comando enviado</span>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

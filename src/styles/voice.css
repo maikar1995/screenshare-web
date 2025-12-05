@@ -1,0 +1,255 @@
+/* Voice Control Overlay Styles */
+.voice-overlay {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 1000;
+  background: rgba(13, 17, 23, 0.95);
+  border: 1px solid var(--border-color, #30363d);
+  border-radius: 8px;
+  padding: 12px 16px;
+  min-width: 200px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s ease;
+}
+
+.voice-content {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.voice-icon {
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+}
+
+.voice-text {
+  flex: 1;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-color, #e6edf3);
+}
+
+.voice-controls {
+  display: flex;
+  gap: 4px;
+}
+
+.voice-toggle {
+  background: none;
+  border: none;
+  font-size: 14px;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+}
+
+.voice-toggle:hover,
+.voice-test:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.voice-test {
+  background: none;
+  border: none;
+  font-size: 12px;
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+  opacity: 0.7;
+}
+
+.voice-test:hover {
+  opacity: 1;
+}
+
+/* State-specific styles */
+.voice-idle {
+  border-color: #6b7280;
+}
+
+.voice-listening {
+  border-color: #3b82f6;
+  box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+}
+
+.voice-listening .voice-icon {
+  animation: pulse 2s infinite;
+}
+
+.voice-recording {
+  border-color: #ef4444;
+  box-shadow: 0 0 20px rgba(239, 68, 68, 0.3);
+}
+
+.voice-recording .voice-icon {
+  animation: record-pulse 1s infinite;
+}
+
+.voice-sending {
+  border-color: #f59e0b;
+  box-shadow: 0 0 20px rgba(245, 158, 11, 0.3);
+}
+
+.voice-sending .voice-icon {
+  animation: spin 1s linear infinite;
+}
+
+.voice-error {
+  border-color: #dc2626;
+  box-shadow: 0 0 20px rgba(220, 38, 38, 0.3);
+}
+
+/* Progress bar for recording */
+.voice-progress {
+  margin-top: 8px;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.voice-progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #ef4444, #f97316);
+  border-radius: 2px;
+  transition: width 0.1s ease;
+}
+
+/* Error details */
+.voice-error-details {
+  margin-top: 8px;
+  padding: 8px;
+  background: rgba(220, 38, 38, 0.1);
+  border: 1px solid rgba(220, 38, 38, 0.3);
+  border-radius: 4px;
+  font-size: 12px;
+  color: #fca5a5;
+}
+
+/* Confirmation popup */
+.voice-confirmation {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1001;
+  background: rgba(13, 17, 23, 0.95);
+  border: 2px solid #10b981;
+  border-radius: 12px;
+  padding: 20px 30px;
+  backdrop-filter: blur(15px);
+  box-shadow: 
+    0 20px 40px rgba(0, 0, 0, 0.5),
+    0 0 30px rgba(16, 185, 129, 0.3);
+  animation: popupFadeIn 0.3s ease-out;
+}
+
+.voice-confirmation-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.voice-confirmation-icon {
+  font-size: 24px;
+  animation: checkPulse 0.6s ease-out;
+}
+
+.voice-confirmation-text {
+  font-size: 16px;
+  font-weight: 600;
+  color: #10b981;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+@keyframes popupFadeIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+@keyframes checkPulse {
+  0% {
+    transform: scale(0.5);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Animations */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.1);
+  }
+}
+
+@keyframes record-pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.2);
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .voice-overlay {
+    top: 10px;
+    right: 10px;
+    left: 10px;
+    min-width: unset;
+  }
+  
+  .voice-content {
+    justify-content: space-between;
+  }
+}
+
+/* Dark theme adjustments (if needed) */
+@media (prefers-color-scheme: dark) {
+  .voice-overlay {
+    background: rgba(13, 17, 23, 0.98);
+    border-color: #30363d;
+  }
+  
+  .voice-text {
+    color: #e6edf3;
+  }
+}
